@@ -1,0 +1,73 @@
+
+stages: 
+  #- test
+  - deploy
+  #- build
+
+#build-dev: 
+#  image: "node:16"
+#  only:
+#   - test
+#  script: 
+#    - "npm install"
+#    - "npm run"
+#  stage: build
+
+# test-dev: 
+#   script: 
+#     - "echo \"Code is tested\""
+#   stage: test
+
+deploy-dev: 
+  before_script:
+    - "apk add --no-cache openssh"
+    - "mkdir -p ~/.ssh"
+    - "eval \"$(ssh-agent -s)\""
+    - "echo \"$SSH_PRIVATE_KEY\" | tr -d '\\r' | ssh-add -"
+    - "chmod 700 ~/.ssh"
+    - ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts
+  image: alpine
+  only: 
+    - staging
+  script: 
+    - pwd
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" 
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" set -f
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" sudo mkdir /var/www/api.dealdoc.app/html/images-backup
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" sudo cp -r /var/www/api.dealdoc.app/html/backend/Images /var/www/api.dealdoc.app/html/images-backup/
+
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" sudo rm -rf /var/www/api.dealdoc.app/html/backend 
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" "cd /var/www/api.dealdoc.app/html/ && sudo git clone https://deal_doc-deploy:xMxmxzwxSke1xDJ32pvp@gitlab.com/Codistan/meddpicc/backend.git backend"
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" "cd /var/www/api.dealdoc.app/html/backend && sudo git checkout staging"
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" echo "Running npm install"
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" sudo chmod -R 777 /var/www/api.dealdoc.app/html/backend 
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" sudo cp -a  /var/www/api.dealdoc.app/html/images-backup/Images/.  /var/www/api.dealdoc.app/html/backend/Images
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" sudo rm -r /var/www/api.dealdoc.app/html/images-backup
+    
+
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" "cd /var/www/api.dealdoc.app/html/backend && sudo echo $'
+      DB_HOST=dealdoc.corsbovicouq.us-east-1.rds.amazonaws.com\n
+      DB_PORT=3306\n
+      DB_DATABASE=deal_doc\n
+      DB_USERNAME=admin\n
+      DB_PASSWORD=mynewpassword\n
+      ACCESS_TOKEN_EXPIRY=2h\n
+      JWT_TOKEN_KEY="sshhhh its secret"\n
+      ADMIN_JWT_TOKEN_KEY="sshhhh its secret"\n
+      JWT_REFRESH_TOKEN_KEY="sshhhh its secret"\n
+      JWT_VERIFY_TOKEN="sshhhh its secret"\n
+      JWT_RESET_TOKEN="sshhhh its secret"\n
+      VERIFY_TOKEN_EXPIRY=15m\n
+      PORT = 4000\n
+      VERIFY_URL='http://localhost:4000'\n
+      VERIFY_RETURN_URL_SUCCESS='https://google.com'\n
+      STRIPE_PUBLISH_KEY = pk_test_51L0djBBWYwCyp5v0kEATd8XrmyvGKmoj2g9a4odUiEstm6SkW7nZleoF1IetMIkI9Ebl0g7uP1NLogvIGP7lBzCo00XTQcZSkw\n
+      STRIPE_SECRET_KEY = sk_test_51L0djBBWYwCyp5v0NfFTFonvmyH6k5UvTn9Mv6EgIli41KwDqHsA8TnG3tOqxbqRRRtfsWls9s8isXUPPs5OmZju004L1PbxBq\n
+      VERIFY_RETURN_URL_FAIL="https://google.com"' > .env"
+
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" "cd /var/www/api.dealdoc.app/html/backend && pwd && npm install"
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" "cd /var/www/api.dealdoc.app/html/backend && pm2 restart API ||  pm2 start index.js --name=API"
+    - ssh -o StrictHostKeyChecking=no ubuntu@"$SERVER_IP" sudo chmod -R 777 /var/www/api.dealdoc.app/html/backend
+    
+    
+  stage: deploy
