@@ -1,4 +1,4 @@
-# Asim's Recently Developed Backend JS Project
+# Usman's Recently Developed Backend JS Project
 This is one of my recently developed projects, published here solely for a Code Review perspective.
 
 ## What this code is?
@@ -45,6 +45,6 @@ A boilerplate for **Node.js** web applications. This boilerplate gives the basic
 * [mysql2](https://github.com/sidorares/node-mysql2) — MySQL client for Node.js. Required for Sequelize. 
 * [sequelize](https://github.com/sequelize/sequelize) — Sequelize is a promise-based Node.js ORM for Postgres, MySQL, MariaDB, SQLite and Microsoft SQL Server.
 
-# Get to know more about Asim's Work
+# Get to know more about Usman's Work
 
-You can reach out to me at asim@paklogics.com to get a proper quote. I offer free consultations over the email and call. Please don't hesitate to reach out.
+You can reach out to me at usman@paklogics.com to get a proper quote. I offer free consultations over the email and call. Please don't hesitate to reach out.
